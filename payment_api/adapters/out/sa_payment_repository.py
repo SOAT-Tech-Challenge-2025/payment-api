@@ -4,10 +4,10 @@ from sqlalchemy import exists, insert, select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payment_api.adapters.out.orm.models import Payment as PaymentModel
 from payment_api.domain.entities import Payment
 from payment_api.domain.exceptions import NotFound, PersistenceError
 from payment_api.domain.ports import PaymentRepository
+from payment_api.infrastructure.orm.models import Payment as PaymentModel
 
 
 class SAPaymentRepository(PaymentRepository):

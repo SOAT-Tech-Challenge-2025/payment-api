@@ -4,10 +4,10 @@ from typing import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payment_api.adapters.out.orm.session_manager import SessionManager
-from payment_api.adapters.out.sa_payment_repository import SAPaymentRepository
-from payment_api.config import Settings
+from payment_api.adapters.out import SAPaymentRepository
 from payment_api.domain.ports import PaymentRepository
+from payment_api.infrastructure.config import Settings
+from payment_api.infrastructure.orm import SessionManager
 
 
 def get_settings() -> Settings:
