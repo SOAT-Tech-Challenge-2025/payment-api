@@ -16,8 +16,13 @@ class Payment(BaseModel):
     total_order_value: float = Field(description="Total value of the order")
     qr_code: str = Field(description="QR code for the payment")
     expiration: datetime = Field(description="Expiration date and time of the payment")
-    created_at: datetime = Field(description="Creation date and time of the payment")
-    timestamp: datetime = Field(description="Last update date and time of the payment")
+    created_at: datetime | None = Field(
+        None, description="Creation date and time of the payment"
+    )
+
+    timestamp: datetime | None = Field(
+        None, description="Last update date and time of the payment"
+    )
 
     def finalize(self, payment_status: PaymentStatus) -> "Payment":
         """Finalize the payment by updating its status and timestamp.
