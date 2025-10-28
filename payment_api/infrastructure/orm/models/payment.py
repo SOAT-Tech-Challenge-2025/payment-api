@@ -1,22 +1,20 @@
 from datetime import datetime
 
 from sqlalchemy import func, types
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from payment_api.domain.value_objects import PaymentStatus
 
+from .base import BaseModel
 
-class Payment(DeclarativeBase):
+
+class Payment(BaseModel):
     """The payment ORM model"""
 
-    __name__ = "tb_pagamento"
+    __tablename__ = "tb_pagamento"
 
     id: Mapped[str] = mapped_column(
-        types.String,
-        primary_key=True,
-        unique=True,
-        nullable=False,
-        index=True,
+        types.String, primary_key=True, unique=True, nullable=False
     )
 
     external_id: Mapped[str] = mapped_column(
@@ -27,13 +25,14 @@ class Payment(DeclarativeBase):
         types.Enum(PaymentStatus, native_enum=False),
         name="st_pagamento",
         nullable=False,
+        index=True,
     )
 
     total_order_value: Mapped[float] = mapped_column(
         types.Float, name="vl_total_pedido", nullable=False
     )
 
-    qr_code: Mapped[str] = mapped_column(types.String, name="codigo_qr", nullable=False)
+    qr_code: Mapped[str] = mapped_column(types.Text, name="codigo_qr", nullable=False)
 
     expiration: Mapped[datetime] = mapped_column(
         types.TIMESTAMP, name="expiracao", nullable=False

@@ -40,6 +40,7 @@ def get_session_manager(settings: Settings) -> SessionManager:
     )
 
 
+@asynccontextmanager
 async def get_db_session(
     session_manager: SessionManager,
 ) -> AsyncIterator[AsyncSession]:

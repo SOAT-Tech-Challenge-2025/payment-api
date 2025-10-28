@@ -1,5 +1,5 @@
 """Entrypoint module for the Payment API application"""
 
-from payment_api.infrastructure.factory import create_api
+from payment_api.infrastructure import factory
 
-app = create_api()
+app = factory.create_api()

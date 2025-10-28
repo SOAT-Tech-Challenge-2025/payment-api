@@ -1,6 +1,6 @@
 """Core dependencies for the REST adapter"""
 
-from typing import Annotated
+from typing import Annotated, AsyncIterator
 
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,32 +15,26 @@ from payment_api.application.use_cases.ports import (
     AbstractQRCodeRenderer,
 )
 from payment_api.domain.ports import PaymentRepository
-from payment_api.infrastructure.factory import (
-    get_db_session,
-    get_finalize_payment_by_mercado_pago_payment_id_use_case,
-    get_find_payment_by_id_use_case,
-    get_mercado_pago_api_client,
-    get_mercado_pago_client,
-    get_payment_repository,
-    get_qr_code_renderer,
-    get_render_qr_code_use_case,
-)
+from payment_api.infrastructure import factory
 from payment_api.infrastructure.mercado_pago import MercadoPagoAPIClient
 
 
-def db_session(request: Request) -> AsyncSession:
+async def db_session(request: Request) -> AsyncIterator[AsyncSession]:
     """Dependency that provides a database session"""
-    return get_db_session(session_manager=request.app.state.session_manager)
+    async with factory.get_db_session(
+        session_manager=request.app.state.session_manager
+    ) as session:
+        yield session
 
 
 def qr_code_renderer() -> AbstractQRCodeRenderer:
     """Dependency that provides a QRCodeRenderer instance"""
-    return get_qr_code_renderer()
+    return factory.get_qr_code_renderer()
 
 
 def mercado_pago_api_client(request: Request) -> MercadoPagoAPIClient:
     """Dependency that provides a MercadoPagoAPIClient instance"""
-    return get_mercado_pago_api_client(
+    return factory.get_mercado_pago_api_client(
         settings=request.app.state.settings,
         http_client=request.app.state.http_client,
     )
@@ -57,7 +51,7 @@ def mercado_pago_client(
     api_client: MercadoPagoAPIClientDep,
 ) -> AbstractMercadoPagoClient:
     """Dependency that provides a MercadoPagoClient instance"""
-    return get_mercado_pago_client(mercado_pago_api_client=api_client)
+    return factory.get_mercado_pago_client(mercado_pago_api_client=api_client)
 
 
 MercadoPagoClientDep = Annotated[
@@ -67,7 +61,7 @@ MercadoPagoClientDep = Annotated[
 
 def payment_repository(session: DBSessionDep) -> PaymentRepository:
     """Dependency that provides a PaymentRepository instance"""
-    return get_payment_repository(session=session)
+    return factory.get_payment_repository(session=session)
 
 
 PaymentRepositoryDep = Annotated[PaymentRepository, Depends(payment_repository)]
@@ -77,14 +71,14 @@ def find_payment_by_id_use_case(
     repository: PaymentRepositoryDep,
 ) -> FindPaymentByIdUseCase:
     """Dependency that provides a FindPaymentByIdUseCase instance"""
-    return get_find_payment_by_id_use_case(payment_repository=repository)
+    return factory.get_find_payment_by_id_use_case(payment_repository=repository)
 
 
 def render_qr_code_use_case(
     repository: PaymentRepositoryDep, renderer: QRCodeRendererDep
 ) -> RenderQRCodeUseCase:
     """Dependency that provides a RenderQRCodeUseCase instance"""
-    return get_render_qr_code_use_case(
+    return factory.get_render_qr_code_use_case(
         payment_repository=repository, qr_code_renderer=renderer
     )
 
@@ -95,7 +89,7 @@ def finalize_payment_by_mercado_pago_payment_id_use_case(
 ) -> FinalizePaymentByMercadoPagoPaymentIdUseCase:
     """Dependency that provides a
     FinalizePaymentByMercadoPagoPaymentIdUseCase instance"""
-    return get_finalize_payment_by_mercado_pago_payment_id_use_case(
+    return factory.get_finalize_payment_by_mercado_pago_payment_id_use_case(
         payment_repository=repository,
         mercado_pago_client=mp_client,
     )
