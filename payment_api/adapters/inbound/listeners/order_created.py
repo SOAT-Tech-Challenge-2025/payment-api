@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class OrderCreatedMessage(BaseModel):
     """Model for order created SQS message"""
 
-    order_id: str = Field(..., alias="orderId")
+    order_id: str = Field(..., description="Unique identifier for the order")
     total_order_value: float = Field(..., description="Total value of the order")
     products: list[ProductDTO] = Field(
         ..., description="List of products associated with the order"
@@ -72,13 +72,25 @@ class OrderCreatedListener:
         body = await message.body
         message_id = await message.message_id
         logger.info("Received message: %s: %s", message_id, body)
-        body_dict = json.loads(body)
-        order_message = OrderCreatedMessage.model_validate(body_dict["Message"])
-        command = CreatePaymentFromOrderCommand(
-            order_id=order_message.order_id,
-            total_order_value=order_message.total_order_value,
-            products=order_message.products,
-        )
-        await self.use_case.execute(command=command)
-        await message.delete()
-        logger.info("Deleted message ID: %s", message_id)
+        try:
+            body_dict = json.loads(body)
+            order_message = OrderCreatedMessage.model_validate_json(
+                body_dict["Message"]
+            )
+            command = CreatePaymentFromOrderCommand(
+                order_id=order_message.order_id,
+                total_order_value=order_message.total_order_value,
+                products=order_message.products,
+            )
+            await self.use_case.execute(command=command)
+        except Exception as e:
+            logger.error(
+                "Error %s processing message ID: %s: %s",
+                e.__class__.__name__,
+                message_id,
+                e,
+                exc_info=True,
+            )
+        finally:
+            await message.delete()
+            logger.info("Deleted message ID: %s", message_id)

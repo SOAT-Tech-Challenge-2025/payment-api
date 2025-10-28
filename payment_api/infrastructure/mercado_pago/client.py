@@ -44,11 +44,9 @@ class MercadoPagoAPIClient:
         )
 
         headers = {**self._get_headers(), "Content-Type": "application/json"}
+        request = order_data.model_dump()
         try:
-            response = await self.http_client.post(
-                url, json=order_data.model_dump(), headers=headers
-            )
-
+            response = await self.http_client.post(url, json=request, headers=headers)
             response.raise_for_status()
         except HTTPStatusError as exc:
             self._handle_http_status_error(exc)

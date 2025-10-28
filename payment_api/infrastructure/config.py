@@ -28,5 +28,11 @@ class Settings(BaseSettings):
     MERCADO_PAGO_POS: str
     MERCADO_PAGO_CALLBACK_URL: str
 
+    # AWS Integration
+    AWS_REGION_NAME: str = "us-east-1"
+    AWS_ACCOUNT_ID: str
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+
     # Messaging
     SQS_ORDER_CREATED_QUEUE_NAME: str

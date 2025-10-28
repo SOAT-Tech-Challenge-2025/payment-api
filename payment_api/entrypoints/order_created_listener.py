@@ -12,6 +12,7 @@ async def main():
         settings = factory.get_settings()
         session_manager = factory.get_session_manager(settings=settings)
         http_client = factory.get_http_client(settings=settings)
+        aws_session = factory.get_aws_session(settings=settings)
         async with factory.get_db_session(session_manager) as db_session:
             repository = factory.get_payment_repository(session=db_session)
             mp_api_client = factory.get_mercado_pago_api_client(
@@ -31,7 +32,7 @@ async def main():
             )
 
             listener = factory.create_order_created_listener(
-                session=db_session,
+                session=aws_session,
                 use_case=create_payment_from_order_use_case,
                 settings=settings,
             )

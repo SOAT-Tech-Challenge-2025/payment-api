@@ -1,5 +1,7 @@
 """Module for rendering QR codes"""
 
+from io import BytesIO
+
 from qrcode import QRCode
 from qrcode.image.pil import PilImage
 
@@ -19,4 +21,6 @@ class QRCodeRenderer(AbstractQRCodeRenderer):
         qr_code = QRCode(image_factory=PilImage)
         qr_code.add_data(data)
         image = qr_code.make_image()
-        return image.get_image().tobytes()
+        img_buffer = BytesIO()
+        image.save(img_buffer, format="PNG")
+        return img_buffer.getvalue()

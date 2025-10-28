@@ -2,14 +2,14 @@
 
 from abc import ABC, abstractmethod
 
-from payment_api.domain.entities import Payment, Product
+from payment_api.domain.entities import PaymentIn, Product
 
 
 class PaymentGateway(ABC):
     """Payment gateway interface."""
 
     @abstractmethod
-    async def create(self, payment: Payment, products: list[Product]) -> Payment:
+    async def create(self, payment: PaymentIn, products: list[Product]) -> PaymentIn:
         """Create a payment in the external gateway.
 
         :param payment: The payment to be created.

@@ -38,7 +38,7 @@ async def find(
             status_code=500, detail="An error occurred while processing your request"
         ) from error
 
-    return PaymentV1.model_validate(payment)
+    return PaymentV1.model_validate(payment.model_dump())
 
 
 @router.get("/{payment_id}/qr")
@@ -85,4 +85,4 @@ async def mercado_pago_webhook(
             status_code=500, detail="An error occurred while processing the webhook"
         ) from error
 
-    return PaymentV1.model_validate(payment)
+    return PaymentV1.model_validate(payment.model_dump())

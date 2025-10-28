@@ -4,7 +4,7 @@ from sqlalchemy import exists, insert, select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payment_api.domain.entities import Payment
+from payment_api.domain.entities import PaymentIn, PaymentOut
 from payment_api.domain.exceptions import NotFound, PersistenceError
 from payment_api.domain.ports import PaymentRepository
 from payment_api.infrastructure.orm.models import Payment as PaymentModel
@@ -16,13 +16,13 @@ class SAPaymentRepository(PaymentRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def find_by_id(self, id: str) -> Payment:
+    async def find_by_id(self, payment_id: str) -> PaymentOut:
         try:
             result = await self.session.execute(
-                select(PaymentModel).where(PaymentModel.id == id)
+                select(PaymentModel).where(PaymentModel.id == payment_id)
             )
 
-            return Payment.model_validate(result.scalars().one())
+            return PaymentOut.model_validate(result.scalars().one())
 
         except NoResultFound as error:
             raise NotFound() from error
@@ -30,10 +30,10 @@ class SAPaymentRepository(PaymentRepository):
         except SQLAlchemyError as error:
             raise PersistenceError() from error
 
-    async def exists_by_id(self, id: str) -> bool:
+    async def exists_by_id(self, payment_id: str) -> bool:
         try:
             result = await self.session.execute(
-                select(exists().where(PaymentModel.id == id))
+                select(exists().where(PaymentModel.id == payment_id))
             )
 
             return result.scalar()
@@ -52,7 +52,7 @@ class SAPaymentRepository(PaymentRepository):
         except SQLAlchemyError as error:
             raise PersistenceError() from error
 
-    async def save(self, payment: Payment) -> Payment:
+    async def save(self, payment: PaymentIn) -> PaymentOut:
         try:
             result = await self.session.execute(
                 insert(PaymentModel)
@@ -60,7 +60,7 @@ class SAPaymentRepository(PaymentRepository):
                 .returning(PaymentModel)
             )
 
-            find_payment = Payment.model_validate(result.scalars().one())
+            find_payment = PaymentOut.model_validate(result.scalars().one())
             await self.session.commit()
             return find_payment
 

@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
+from aioboto3 import Session as AIOBoto3Session
 from fastapi import FastAPI
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,6 +49,16 @@ async def get_db_session(
 
     async with session_manager.session() as session:
         yield session
+
+
+def get_aws_session(settings: Settings) -> AIOBoto3Session:
+    """Return an AIOBoto3Session instance"""
+    return AIOBoto3Session(
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_REGION_NAME,
+        aws_account_id=settings.AWS_ACCOUNT_ID,
+    )
 
 
 def get_http_client(settings: Settings) -> AsyncClient:
@@ -126,7 +137,9 @@ def get_finalize_payment_by_mercado_pago_payment_id_use_case(
 
 
 def create_order_created_listener(
-    session: AsyncSession, use_case: CreatePaymentFromOrderUseCase, settings: Settings
+    session: AIOBoto3Session,
+    use_case: CreatePaymentFromOrderUseCase,
+    settings: Settings,
 ) -> OrderCreatedListener:
     """Create an OrderCreatedListener instance"""
     return OrderCreatedListener(session=session, use_case=use_case, settings=settings)
@@ -135,7 +148,7 @@ def create_order_created_listener(
 def create_api() -> FastAPI:
     """Create FastAPI application instance"""
 
-    app = FastAPI(lifespan=fastapi_lifespan, version="1.0.0")
+    app = FastAPI(lifespan=fastapi_lifespan)
     app.include_router(payment_router_v1)
     return app
 
@@ -148,6 +161,7 @@ async def fastapi_lifespan(app_instance: FastAPI):
     app_instance.state.settings = get_settings()
     app_instance.title = app_instance.state.settings.PROJECT_NAME
     app_instance.version = app_instance.state.settings.VERSION
+    app_instance.root_path = app_instance.state.settings.API_ROOT_PATH
     app_instance.state.session_manager = get_session_manager(
         settings=app_instance.state.settings
     )

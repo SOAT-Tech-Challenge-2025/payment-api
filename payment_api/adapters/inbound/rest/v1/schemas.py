@@ -16,10 +16,7 @@ class PaymentV1(BaseModel):
     total_order_value: float = Field(description="Total value of the order")
     qr_code: str = Field(description="QR code for the payment")
     expiration: datetime = Field(description="Expiration date and time of the payment")
-    created_at: datetime | None = Field(
-        None, description="Creation date and time of the payment"
-    )
-
+    created_at: datetime = Field(description="Creation date and time of the payment")
     timestamp: datetime | None = Field(
         None, description="Last update date and time of the payment"
     )

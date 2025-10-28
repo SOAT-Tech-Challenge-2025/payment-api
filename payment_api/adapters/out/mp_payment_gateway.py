@@ -1,4 +1,8 @@
-from payment_api.domain.entities import Payment, Product
+"""Mercado Pago Payment Gateway adapter implementation"""
+
+from datetime import datetime, timedelta, timezone
+
+from payment_api.domain.entities import PaymentIn, Product
 from payment_api.domain.exceptions import PaymentCreationError
 from payment_api.domain.ports import PaymentGateway
 from payment_api.infrastructure.config import Settings
@@ -17,7 +21,7 @@ class MPPaymentGateway(PaymentGateway):
         self.callback_url = settings.MERCADO_PAGO_CALLBACK_URL
         self.mp_client = mp_client
 
-    async def create(self, payment: Payment, products: list[Product]) -> Payment:
+    async def create(self, payment: PaymentIn, products: list[Product]) -> PaymentIn:
         mp_items = [
             MPItem(
                 title=product.name,
@@ -31,12 +35,13 @@ class MPPaymentGateway(PaymentGateway):
         ]
 
         description = f"Order #{payment.id}"
+        expiration = datetime.now(tz=timezone.utc) + timedelta(minutes=10)
         order_request = MPCreateOrderIn(
             external_reference=payment.id,
             total_amount=payment.total_order_value,
             title=description,
             description=description,
-            expiration_date=payment.expiration.isoformat(),
+            expiration_date=expiration.isoformat(timespec="milliseconds"),
             items=mp_items,
             notification_url=self.callback_url,
         )

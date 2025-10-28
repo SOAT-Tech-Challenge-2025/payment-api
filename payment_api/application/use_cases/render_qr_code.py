@@ -23,8 +23,15 @@ class RenderQRCodeUseCase:
         :type command: RenderQRCodeCommand
         :return: bytes representing the QR code image
         :rtype: bytes
+        :raises ValueError: if the payment does not have an associated QR code
         """
 
         # Fetch the payment details using the payment ID
-        payment = await self.payment_repository.find_by_id(id=command.payment_id)
+        payment = await self.payment_repository.find_by_id(
+            payment_id=command.payment_id
+        )
+
+        if not payment.qr_code:
+            raise ValueError("Payment does not have an associated QR code.")
+
         return self.qr_code_renderer.render(data=payment.qr_code)

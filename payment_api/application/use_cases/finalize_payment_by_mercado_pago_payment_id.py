@@ -7,7 +7,7 @@ from payment_api.application.use_cases.ports import (
     AbstractMercadoPagoClient,
     MPOrderStatus,
 )
-from payment_api.domain.entities import Payment
+from payment_api.domain.entities import PaymentIn, PaymentOut
 from payment_api.domain.ports import PaymentRepository
 from payment_api.domain.value_objects import PaymentStatus
 
@@ -25,13 +25,13 @@ class FinalizePaymentByMercadoPagoPaymentIdUseCase:
 
     async def execute(
         self, command: FinalizePaymentByMercadoPagoPaymentIdCommand
-    ) -> Payment:
+    ) -> PaymentOut:
         """Finalize a payment using Mercado Pago payment ID
 
         :param command: FinalizePaymentByMercadoPagoPaymentIdCommand
         :type command: FinalizePaymentByMercadoPagoPaymentIdCommand
         :return: Finalized Payment
-        :rtype: Payment
+        :rtype: PaymentOut
         """
 
         # find payment in Mercado Pago
@@ -51,13 +51,15 @@ class FinalizePaymentByMercadoPagoPaymentIdUseCase:
             raise ValueError(f"Payment with external ID {external_id} already exists")
 
         # finalize payment in repository
-        payment = await self.payment_repository.find_by_id(id=order_id)
+        payment = await self.payment_repository.find_by_id(payment_id=order_id)
         payment.external_id = external_id
         payment.finalize(
             self._convert_mp_order_status_to_domain_status(mp_order.status)
         )
 
-        return await self.payment_repository.save(payment=payment)
+        return await self.payment_repository.save(
+            payment=PaymentIn.model_validate(payment)
+        )
 
     def _convert_mp_order_status_to_domain_status(
         self, mp_order_status: MPOrderStatus

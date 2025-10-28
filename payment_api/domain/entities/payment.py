@@ -2,29 +2,24 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from payment_api.domain.value_objects import PaymentStatus
 
 
-class Payment(BaseModel):
-    """Payment entity representing a payment record."""
+class PaymentIn(BaseModel):
+    """Payment input entity"""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: str = Field(description="Unique identifier for the payment")
     external_id: str = Field(description="External identifier for the payment")
     payment_status: PaymentStatus = Field(description="Current status of the payment")
     total_order_value: float = Field(description="Total value of the order")
-    qr_code: str = Field(description="QR code for the payment")
+    qr_code: str | None = Field(None, description="QR code for the payment")
     expiration: datetime = Field(description="Expiration date and time of the payment")
-    created_at: datetime | None = Field(
-        None, description="Creation date and time of the payment"
-    )
 
-    timestamp: datetime | None = Field(
-        None, description="Last update date and time of the payment"
-    )
-
-    def finalize(self, payment_status: PaymentStatus) -> "Payment":
+    def finalize(self, payment_status: PaymentStatus) -> "PaymentIn":
         """Finalize the payment by updating its status and timestamp.
 
         :param payment_status: The new payment status to set.
@@ -40,7 +35,7 @@ class Payment(BaseModel):
 
     def _check_if_is_valid_to_finalize(
         self, new_payment_status: PaymentStatus
-    ) -> "Payment":
+    ) -> "PaymentIn":
         """Check if the payment can be finalized with the new status.
 
         :param new_payment_status: The new payment status to set.
@@ -59,3 +54,10 @@ class Payment(BaseModel):
             )
 
         return self
+
+
+class PaymentOut(PaymentIn):
+    """Payment output entity"""
+
+    created_at: datetime = Field(description="Creation date and time of the payment")
+    timestamp: datetime = Field(description="Last update date and time of the payment")
