@@ -8,7 +8,10 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payment_api.adapters.inbound.listeners import OrderCreatedListener
+from payment_api.adapters.inbound.listeners import (
+    OrderCreatedHandler,
+    OrderCreatedListener,
+)
 from payment_api.adapters.inbound.rest.v1 import payment_router_v1
 from payment_api.adapters.out import MPPaymentGateway, SAPaymentRepository
 from payment_api.application.use_cases import (
@@ -136,13 +139,20 @@ def get_finalize_payment_by_mercado_pago_payment_id_use_case(
     )
 
 
+def order_created_handler(
+    use_case: CreatePaymentFromOrderUseCase,
+) -> OrderCreatedHandler:
+    """Create an OrderCreatedHandler instance"""
+    return OrderCreatedHandler(use_case=use_case)
+
+
 def create_order_created_listener(
     session: AIOBoto3Session,
-    use_case: CreatePaymentFromOrderUseCase,
+    handler: OrderCreatedHandler,
     settings: Settings,
 ) -> OrderCreatedListener:
     """Create an OrderCreatedListener instance"""
-    return OrderCreatedListener(session=session, use_case=use_case, settings=settings)
+    return OrderCreatedListener(session=session, handler=handler, settings=settings)
 
 
 def create_api() -> FastAPI:

@@ -31,9 +31,13 @@ async def main():
                 )
             )
 
+            handler = factory.order_created_handler(
+                use_case=create_payment_from_order_use_case
+            )
+
             listener = factory.create_order_created_listener(
                 session=aws_session,
-                use_case=create_payment_from_order_use_case,
+                handler=handler,
                 settings=settings,
             )
 

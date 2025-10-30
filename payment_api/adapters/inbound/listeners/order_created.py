@@ -24,73 +24,83 @@ class OrderCreatedMessage(BaseModel):
     )
 
 
+class OrderCreatedHandler:
+    """Handler for processing order created messages"""
+
+    def __init__(self, use_case: CreatePaymentFromOrderUseCase):
+        self.use_case = use_case
+
+    async def handle(self, message):
+        """Handle the order created message"""
+        body = await message.body
+        message_id = await message.message_id
+        logger.info("Received message: %s: %s", message_id, body)
+        body_dict = json.loads(body)
+        order_message = OrderCreatedMessage.model_validate_json(body_dict["Message"])
+        command = CreatePaymentFromOrderCommand(
+            order_id=order_message.order_id,
+            total_order_value=order_message.total_order_value,
+            products=order_message.products,
+        )
+        await self.use_case.execute(command=command)
+        await message.delete()
+        logger.info("Successfully processed and deleted message ID: %s", message_id)
+
+
 class OrderCreatedListener:
     """Listener for handling order created events from SQS"""
 
     def __init__(
         self,
         session: AIOBoto3Session,
-        use_case: CreatePaymentFromOrderUseCase,
+        handler: OrderCreatedHandler,
         settings: Settings,
     ):
         self.session = session
-        self.use_case = use_case
+        self.handler = handler
         self.queue_name = settings.SQS_ORDER_CREATED_QUEUE_NAME
+        self.wait_time = 20
+        self.visibility_timeout = 60
+        self.max_messages = 5
 
     async def listen(self):
         """Listen for order created events and process them"""
+
         async with self.session.resource("sqs") as sqs_client:
             logger.info("Listening for messages on queue: %s", self.queue_name)
             queue = await sqs_client.get_queue_by_name(QueueName=self.queue_name)
-            wait_time = 20
             while True:
-                messages = await self._receive_messages(
-                    queue=queue, max_messages=1, wait_time=wait_time
-                )
+                messages = await self._consume(queue=queue)
                 if not messages:
-                    logger.info("No messages received in %d seconds.", wait_time)
+                    logger.info("No messages received in %d seconds", self.wait_time)
                     continue
 
-    async def _receive_messages(self, queue, max_messages, wait_time):
+    async def _consume(self, queue):
         try:
             messages = await queue.receive_messages(
                 MessageAttributeNames=["All"],
-                MaxNumberOfMessages=max_messages,
-                WaitTimeSeconds=wait_time,
+                MaxNumberOfMessages=self.max_messages,
+                WaitTimeSeconds=self.wait_time,
+                VisibilityTimeout=self.visibility_timeout,
             )
 
-            for msg in messages:
-                await self._process_message(message=msg)
         except BotoCoreClientError as error:
-            logger.exception("Couldn't receive messages from queue: %s", queue)
-            raise error
-        else:
-            return messages
-
-    async def _process_message(self, message):
-        """Process a single SQS message"""
-        body = await message.body
-        message_id = await message.message_id
-        logger.info("Received message: %s: %s", message_id, body)
-        try:
-            body_dict = json.loads(body)
-            order_message = OrderCreatedMessage.model_validate_json(
-                body_dict["Message"]
-            )
-            command = CreatePaymentFromOrderCommand(
-                order_id=order_message.order_id,
-                total_order_value=order_message.total_order_value,
-                products=order_message.products,
-            )
-            await self.use_case.execute(command=command)
-        except Exception as e:
             logger.error(
-                "Error %s processing message ID: %s: %s",
-                e.__class__.__name__,
-                message_id,
-                e,
-                exc_info=True,
+                "Couldn't receive messages from queue: %s", queue, exc_info=True
             )
-        finally:
-            await message.delete()
-            logger.info("Deleted message ID: %s", message_id)
+
+            raise error
+
+        for msg in messages:
+            message_id = await msg.message_id
+            try:
+                await self.handler.handle(message=msg)
+            except Exception as e:
+                logger.error(
+                    "Failed to process message ID: %s: %s",
+                    message_id,
+                    str(e),
+                    exc_info=True,
+                )
+
+        return messages
