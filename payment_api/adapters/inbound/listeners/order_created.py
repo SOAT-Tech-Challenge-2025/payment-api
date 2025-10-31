@@ -74,9 +74,9 @@ class OrderCreatedListener:
         self.session = session
         self.handler = handler
         self.queue_name = settings.QUEUE_NAME
-        self.wait_time = 20
-        self.visibility_timeout = 60
-        self.max_messages = 5
+        self.wait_time = settings.WAIT_TIME_SECONDS
+        self.visibility_timeout = settings.VISIBILITY_TIMEOUT_SECONDS
+        self.max_messages = settings.MAX_NUMBER_OF_MESSAGES_PER_BATCH
 
     async def listen(self):
         """Listen for order created events and process them"""

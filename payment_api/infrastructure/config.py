@@ -71,3 +71,6 @@ class OrderCreatedListenerSettings(BaseSettings):
     )
 
     QUEUE_NAME: str
+    WAIT_TIME_SECONDS: int = 20
+    MAX_NUMBER_OF_MESSAGES_PER_BATCH: int = 5
+    VISIBILITY_TIMEOUT_SECONDS: int = 60
