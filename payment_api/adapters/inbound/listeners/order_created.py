@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from payment_api.application.commands import CreatePaymentFromOrderCommand, ProductDTO
 from payment_api.application.use_cases import CreatePaymentFromOrderUseCase
-from payment_api.infrastructure.config import Settings
+from payment_api.infrastructure.config import OrderCreatedListenerSettings
 
 logger = logging.getLogger(__name__)
 
@@ -54,11 +54,11 @@ class OrderCreatedListener:
         self,
         session: AIOBoto3Session,
         handler: OrderCreatedHandler,
-        settings: Settings,
+        settings: OrderCreatedListenerSettings,
     ):
         self.session = session
         self.handler = handler
-        self.queue_name = settings.SQS_ORDER_CREATED_QUEUE_NAME
+        self.queue_name = settings.QUEUE_NAME
         self.wait_time = 20
         self.visibility_timeout = 60
         self.max_messages = 5

@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from payment_api.infrastructure import factory
 from payment_api.infrastructure.orm.models import BaseModel
 
-# Get application settings
-settings = factory.get_settings()
+# Get database settings
+settings = factory.get_database_settings()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -45,7 +45,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.DB_DSN
+    url = settings.DSN
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -71,7 +71,7 @@ async def run_async_migrations() -> None:
     """
 
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.DB_DSN
+    configuration["sqlalchemy.url"] = settings.DSN
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",

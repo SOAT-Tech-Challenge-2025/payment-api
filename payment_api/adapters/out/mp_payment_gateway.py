@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from payment_api.domain.entities import PaymentIn, Product
 from payment_api.domain.exceptions import PaymentCreationError
 from payment_api.domain.ports import PaymentGateway
-from payment_api.infrastructure.config import Settings
+from payment_api.infrastructure.config import MercadoPagoSettings
 from payment_api.infrastructure.mercado_pago import (
     MercadoPagoAPIClient,
     MPClientError,
@@ -17,8 +17,8 @@ from payment_api.infrastructure.mercado_pago import (
 class MPPaymentGateway(PaymentGateway):
     """Mercado Pago Payment Gateway adapter implementation."""
 
-    def __init__(self, settings: Settings, mp_client: MercadoPagoAPIClient):
-        self.callback_url = settings.MERCADO_PAGO_CALLBACK_URL
+    def __init__(self, settings: MercadoPagoSettings, mp_client: MercadoPagoAPIClient):
+        self.callback_url = settings.CALLBACK_URL
         self.mp_client = mp_client
 
     async def create(self, payment: PaymentIn, products: list[Product]) -> PaymentIn:

@@ -3,36 +3,71 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
-    """Application settings"""
+class APPSettings(BaseSettings):
+    """APP specific settings"""
 
-    # Pydantic Settings Config
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file="settings/app.env", env_file_encoding="utf-8"
+    )
 
-    # General
-    PROJECT_NAME: str = "SOAT Tech Challenge Payment Api"
+    TITLE: str = "SOAT Tech Challenge Payment Api"
     VERSION: str = "1.0.0"
     ENVIRONMENT: str = "PRD"
-    API_ROOT_PATH: str = "/api"
+    ROOT_PATH: str = "/api"
 
-    # Database
-    DB_DSN: str
-    DB_ECHO: bool = False
 
-    # HTTP Client
-    HTTP_TIMEOUT: float = 10.0  # seconds
+class DatabaseSettings(BaseSettings):
+    """Database specific settings"""
 
-    # Mercado Pago Integration
-    MERCADO_PAGO_ACCESS_TOKEN: str
-    MERCADO_PAGO_USER_ID: str
-    MERCADO_PAGO_POS: str
-    MERCADO_PAGO_CALLBACK_URL: str
+    model_config = SettingsConfigDict(
+        env_file="settings/database.env", env_file_encoding="utf-8"
+    )
 
-    # AWS Integration
-    AWS_REGION_NAME: str = "us-east-1"
-    AWS_ACCOUNT_ID: str
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
+    DSN: str
+    ECHO: bool = False
 
-    # Messaging
-    SQS_ORDER_CREATED_QUEUE_NAME: str
+
+class HTTPClientSettings(BaseSettings):
+    """HTTP Client specific settings"""
+
+    model_config = SettingsConfigDict(
+        env_file="settings/http_client.env", env_file_encoding="utf-8"
+    )
+
+    TIMEOUT: float = 10.0  # seconds
+
+
+class MercadoPagoSettings(BaseSettings):
+    """Mercado Pago integration settings"""
+
+    model_config = SettingsConfigDict(
+        env_file="settings/mercado_pago.env", env_file_encoding="utf-8"
+    )
+
+    ACCESS_TOKEN: str
+    USER_ID: str
+    POS: str
+    CALLBACK_URL: str
+
+
+class AWSSettings(BaseSettings):
+    """AWS integration settings"""
+
+    model_config = SettingsConfigDict(
+        env_file="settings/aws.env", env_file_encoding="utf-8"
+    )
+
+    REGION_NAME: str = "us-east-1"
+    ACCOUNT_ID: str
+    ACCESS_KEY_ID: str
+    SECRET_ACCESS_KEY: str
+
+
+class OrderCreatedListenerSettings(BaseSettings):
+    """Order Created Listener settings"""
+
+    model_config = SettingsConfigDict(
+        env_file="settings/order_created_listener.env", env_file_encoding="utf-8"
+    )
+
+    QUEUE_NAME: str

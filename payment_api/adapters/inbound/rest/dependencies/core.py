@@ -41,8 +41,8 @@ def mercado_pago_api_client(request: Request) -> MercadoPagoAPIClient:
     """Dependency that provides a MercadoPagoAPIClient instance"""
     logger.debug("Providing MercadoPagoAPIClient via dependency")
     return factory.get_mercado_pago_api_client(
-        settings=request.app.state.settings,
-        http_client=request.app.state.http_client,
+        settings=request.app.state.mercado_pago_settings,
+        http_client=request.app.state.http_client_settings,
     )
 
 

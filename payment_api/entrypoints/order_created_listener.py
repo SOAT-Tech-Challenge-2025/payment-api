@@ -12,26 +12,34 @@ async def main():
     """Run the order created event listener"""
 
     try:
-        logger.info("Loading application settings")
-        settings = factory.get_settings()
+        logger.info("Loading database settings")
+        db_settings = factory.get_database_settings()
+        logger.info("Loading HTTP client settings")
+        http_client_settings = factory.get_http_client_settings()
+        logger.info("Loading AWS settings")
+        aws_settings = factory.get_aws_settings()
+        logger.info("Loading Mercado Pago settings")
+        mercado_pago_settings = factory.get_mercado_pago_settings()
+        logger.info("Loading order created listener settings")
+        order_created_listener_settings = factory.get_order_created_listener_settings()
         logger.info("Starting session manager")
-        session_manager = factory.get_session_manager(settings=settings)
+        session_manager = factory.get_session_manager(settings=db_settings)
         logger.info("Starting HTTP client")
-        http_client = factory.get_http_client(settings=settings)
+        http_client = factory.get_http_client(settings=http_client_settings)
         logger.info("Starting AWS session")
-        aws_session = factory.get_aws_session(settings=settings)
+        aws_session = factory.get_aws_session(settings=aws_settings)
         logger.info("Creating database session")
         async with factory.get_db_session(session_manager) as db_session:
             logger.info("Creating payment repository")
             repository = factory.get_payment_repository(session=db_session)
             logger.info("Creating Mercado Pago API client")
             mp_api_client = factory.get_mercado_pago_api_client(
-                settings=settings, http_client=http_client
+                settings=mercado_pago_settings, http_client=http_client
             )
 
             logger.info("Creating payment gateway")
             gateway = factory.get_payment_gateway(
-                settings=settings,
+                settings=mercado_pago_settings,
                 mp_client=mp_api_client,
             )
 
@@ -52,7 +60,7 @@ async def main():
             listener = factory.create_order_created_listener(
                 session=aws_session,
                 handler=handler,
-                settings=settings,
+                settings=order_created_listener_settings,
             )
 
             logger.info("Starting order created event listener")

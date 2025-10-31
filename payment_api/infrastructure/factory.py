@@ -26,7 +26,14 @@ from payment_api.application.use_cases.ports import (
     AbstractQRCodeRenderer,
 )
 from payment_api.domain.ports import PaymentGateway, PaymentRepository
-from payment_api.infrastructure.config import Settings
+from payment_api.infrastructure.config import (
+    APPSettings,
+    AWSSettings,
+    DatabaseSettings,
+    HTTPClientSettings,
+    MercadoPagoSettings,
+    OrderCreatedListenerSettings,
+)
 from payment_api.infrastructure.mercado_pago import MercadoPagoAPIClient
 from payment_api.infrastructure.mercado_pago_client import MercadoPagoClient
 from payment_api.infrastructure.orm import SessionManager
@@ -35,16 +42,39 @@ from payment_api.infrastructure.qr_code_renderer import QRCodeRenderer
 logger = logging.getLogger(__name__)
 
 
-def get_settings() -> Settings:
-    """Return a Settings instance"""
-    return Settings()
+def get_app_settings() -> APPSettings:
+    """Return an APPSettings instance"""
+    return APPSettings()
 
 
-def get_session_manager(settings: Settings) -> SessionManager:
+def get_database_settings() -> DatabaseSettings:
+    """Return a DatabaseSettings instance"""
+    return DatabaseSettings()
+
+
+def get_http_client_settings() -> HTTPClientSettings:
+    """Return an HTTPClientSettings instance"""
+    return HTTPClientSettings()
+
+
+def get_mercado_pago_settings() -> MercadoPagoSettings:
+    """Return a MercadoPagoSettings instance"""
+    return MercadoPagoSettings()
+
+
+def get_aws_settings() -> AWSSettings:
+    """Return an AWSSettings instance"""
+    return AWSSettings()
+
+
+def get_order_created_listener_settings() -> OrderCreatedListenerSettings:
+    """Return an OrderCreatedListenerSettings instance"""
+    return OrderCreatedListenerSettings()
+
+
+def get_session_manager(settings: DatabaseSettings) -> SessionManager:
     """Return a SessionManager instance"""
-    return SessionManager(
-        host=settings.DB_DSN, engine_kwargs={"echo": settings.DB_ECHO}
-    )
+    return SessionManager(host=settings.DSN, engine_kwargs={"echo": settings.ECHO})
 
 
 @asynccontextmanager
@@ -57,19 +87,19 @@ async def get_db_session(
         yield session
 
 
-def get_aws_session(settings: Settings) -> AIOBoto3Session:
+def get_aws_session(settings: AWSSettings) -> AIOBoto3Session:
     """Return an AIOBoto3Session instance"""
     return AIOBoto3Session(
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name=settings.AWS_REGION_NAME,
-        aws_account_id=settings.AWS_ACCOUNT_ID,
+        aws_access_key_id=settings.ACCESS_KEY_ID,
+        aws_secret_access_key=settings.SECRET_ACCESS_KEY,
+        region_name=settings.REGION_NAME,
+        aws_account_id=settings.ACCOUNT_ID,
     )
 
 
-def get_http_client(settings: Settings) -> AsyncClient:
+def get_http_client(settings: HTTPClientSettings) -> AsyncClient:
     """Return an AsyncClient instance"""
-    return AsyncClient(timeout=settings.HTTP_TIMEOUT)
+    return AsyncClient(timeout=settings.TIMEOUT)
 
 
 def get_payment_repository(session: AsyncSession) -> PaymentRepository:
@@ -78,14 +108,14 @@ def get_payment_repository(session: AsyncSession) -> PaymentRepository:
 
 
 def get_mercado_pago_api_client(
-    settings: Settings, http_client: AsyncClient
+    settings: MercadoPagoSettings, http_client: AsyncClient
 ) -> MercadoPagoAPIClient:
     """Return a MercadoPagoAPIClient instance"""
     return MercadoPagoAPIClient(settings=settings, http_client=http_client)
 
 
 def get_payment_gateway(
-    settings: Settings, mp_client: MercadoPagoAPIClient
+    settings: MercadoPagoSettings, mp_client: MercadoPagoAPIClient
 ) -> PaymentGateway:
     """Return a MPPaymentGateway instance"""
     return MPPaymentGateway(settings=settings, mp_client=mp_client)
@@ -152,7 +182,7 @@ def order_created_handler(
 def create_order_created_listener(
     session: AIOBoto3Session,
     handler: OrderCreatedHandler,
-    settings: Settings,
+    settings: OrderCreatedListenerSettings,
 ) -> OrderCreatedListener:
     """Create an OrderCreatedListener instance"""
     return OrderCreatedListener(session=session, handler=handler, settings=settings)
@@ -174,10 +204,16 @@ async def fastapi_lifespan(app_instance: FastAPI):
 
     # Application state setup
     logger.info("Loading application settings")
-    app_instance.state.settings = get_settings()
-    app_instance.title = app_instance.state.settings.PROJECT_NAME
-    app_instance.version = app_instance.state.settings.VERSION
-    app_instance.root_path = app_instance.state.settings.API_ROOT_PATH
+    app_instance.state.app_settings = get_app_settings()
+    logger.info("Loading database settings")
+    app_instance.state.database_settings = get_database_settings()
+    logger.info("Loading HTTP client settings")
+    app_instance.state.http_client_settings = get_http_client_settings()
+    logger.info("Loading MercadoPago settings")
+    app_instance.state.mercado_pago_settings = get_mercado_pago_settings()
+    app_instance.title = app_instance.state.app_settings.TITLE
+    app_instance.version = app_instance.state.app_settings.VERSION
+    app_instance.root_path = app_instance.state.app_settings.ROOT_PATH
     logger.info(
         "Application settings loaded title=%s version=%s root_path=%s",
         app_instance.title,
@@ -187,12 +223,12 @@ async def fastapi_lifespan(app_instance: FastAPI):
 
     logger.info("Starting session manager")
     app_instance.state.session_manager = get_session_manager(
-        settings=app_instance.state.settings
+        settings=app_instance.state.database_settings
     )
 
     logger.info("Starting HTTP client")
     app_instance.state.http_client = get_http_client(
-        settings=app_instance.state.settings
+        settings=app_instance.state.http_client_settings
     )
 
     # Application state teardown

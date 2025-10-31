@@ -5,7 +5,7 @@ from typing import NoReturn
 
 from httpx import AsyncClient, HTTPError, HTTPStatusError
 
-from payment_api.infrastructure.config import Settings
+from payment_api.infrastructure.config import MercadoPagoSettings
 from payment_api.infrastructure.mercado_pago.exceptions import (
     MPClientError,
     MPNotFoundError,
@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 class MercadoPagoAPIClient:
     """Client for interacting with the Mercado Pago API."""
 
-    def __init__(self, settings: Settings, http_client: AsyncClient):
-        self.access_token = settings.MERCADO_PAGO_ACCESS_TOKEN
-        self.user_id = settings.MERCADO_PAGO_USER_ID
-        self.pos = settings.MERCADO_PAGO_POS
+    def __init__(self, settings: MercadoPagoSettings, http_client: AsyncClient):
+        self.access_token = settings.ACCESS_TOKEN
+        self.user_id = settings.USER_ID
+        self.pos = settings.POS
         self.http_client = http_client
         self.base_url = "https://api.mercadopago.com"
 
