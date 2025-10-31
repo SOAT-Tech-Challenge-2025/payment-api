@@ -71,6 +71,13 @@ class FinalizePaymentByMercadoPagoPaymentIdUseCase:
             self._convert_mp_order_status_to_domain_status(mp_order.status)
         )
 
+        logger.info(
+            "External ID for payment %s set to %s finalized with status %s",
+            payment.id,
+            external_id,
+            payment.payment_status.value,
+        )
+
         return await self.payment_repository.save(
             payment=PaymentIn.model_validate(payment)
         )

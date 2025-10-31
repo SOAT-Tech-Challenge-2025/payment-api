@@ -42,7 +42,7 @@ def mercado_pago_api_client(request: Request) -> MercadoPagoAPIClient:
     logger.debug("Providing MercadoPagoAPIClient via dependency")
     return factory.get_mercado_pago_api_client(
         settings=request.app.state.mercado_pago_settings,
-        http_client=request.app.state.http_client_settings,
+        http_client=request.app.state.http_client,
     )
 
 

@@ -2,14 +2,17 @@
 
 import json
 import logging
+from typing import Callable
 
 from aioboto3 import Session as AIOBoto3Session
 from botocore.exceptions import ClientError as BotoCoreClientError
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from payment_api.application.commands import CreatePaymentFromOrderCommand, ProductDTO
 from payment_api.application.use_cases import CreatePaymentFromOrderUseCase
 from payment_api.infrastructure.config import OrderCreatedListenerSettings
+from payment_api.infrastructure.orm import SessionManager
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +30,36 @@ class OrderCreatedMessage(BaseModel):
 class OrderCreatedHandler:
     """Handler for processing order created messages"""
 
-    def __init__(self, use_case: CreatePaymentFromOrderUseCase):
-        self.use_case = use_case
+    def __init__(
+        self,
+        session_manager: SessionManager,
+        use_case_factory: Callable[[AsyncSession], CreatePaymentFromOrderUseCase],
+    ):
+        self.session_manager = session_manager
+        self.use_case_factory = use_case_factory
 
     async def handle(self, message):
         """Handle the order created message"""
+
         body = await message.body
         message_id = await message.message_id
         logger.info("Received message: %s: %s", message_id, body)
-        body_dict = json.loads(body)
-        order_message = OrderCreatedMessage.model_validate_json(body_dict["Message"])
-        command = CreatePaymentFromOrderCommand(
-            order_id=order_message.order_id,
-            total_order_value=order_message.total_order_value,
-            products=order_message.products,
-        )
-        await self.use_case.execute(command=command)
-        await message.delete()
-        logger.info("Successfully processed and deleted message ID: %s", message_id)
+        async with self.session_manager.session() as db_session:
+            use_case = self.use_case_factory(db_session)
+            body_dict = json.loads(body)
+            order_message = OrderCreatedMessage.model_validate_json(
+                body_dict["Message"]
+            )
+
+            command = CreatePaymentFromOrderCommand(
+                order_id=order_message.order_id,
+                total_order_value=order_message.total_order_value,
+                products=order_message.products,
+            )
+
+            await use_case.execute(command=command)
+            await message.delete()
+            logger.info("Successfully processed and deleted message ID: %s", message_id)
 
 
 class OrderCreatedListener:

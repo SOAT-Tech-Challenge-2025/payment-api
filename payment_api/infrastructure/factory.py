@@ -172,11 +172,41 @@ def get_finalize_payment_by_mercado_pago_payment_id_use_case(
     )
 
 
-def order_created_handler(
-    use_case: CreatePaymentFromOrderUseCase,
+def create_payment_from_order_use_case_factory(
+    mercado_pago_settings: MercadoPagoSettings,
+    http_client: AsyncClient,
+):
+    """Create a factory function for creating use cases with sessions"""
+
+    def use_case_factory(session: AsyncSession) -> CreatePaymentFromOrderUseCase:
+        repository = get_payment_repository(session=session)
+        mp_api_client = get_mercado_pago_api_client(
+            settings=mercado_pago_settings, http_client=http_client
+        )
+        gateway = get_payment_gateway(
+            settings=mercado_pago_settings,
+            mp_client=mp_api_client,
+        )
+        return get_create_payment_from_order_use_case(
+            payment_repository=repository,
+            payment_gateway=gateway,
+        )
+
+    return use_case_factory
+
+
+def get_order_created_handler(
+    session_manager: SessionManager,
+    mercado_pago_settings: MercadoPagoSettings,
+    http_client: AsyncClient,
 ) -> OrderCreatedHandler:
     """Create an OrderCreatedHandler instance"""
-    return OrderCreatedHandler(use_case=use_case)
+    return OrderCreatedHandler(
+        session_manager=session_manager,
+        use_case_factory=create_payment_from_order_use_case_factory(
+            mercado_pago_settings=mercado_pago_settings, http_client=http_client
+        ),
+    )
 
 
 def create_order_created_listener(
