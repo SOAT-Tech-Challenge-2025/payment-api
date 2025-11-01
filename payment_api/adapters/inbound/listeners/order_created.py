@@ -78,13 +78,17 @@ class OrderCreatedListener:
         self.visibility_timeout = settings.VISIBILITY_TIMEOUT_SECONDS
         self.max_messages = settings.MAX_NUMBER_OF_MESSAGES_PER_BATCH
 
-    async def listen(self):
+    async def listen(self, shutdown_event=None):
         """Listen for order created events and process them"""
 
         async with self.session.resource("sqs") as sqs_client:
             logger.info("Listening for messages on queue: %s", self.queue_name)
             queue = await sqs_client.get_queue_by_name(QueueName=self.queue_name)
             while True:
+                if shutdown_event and shutdown_event.shutdown:
+                    logger.info("Shutdown requested, stopping listener")
+                    break
+
                 messages = await self._consume(queue=queue)
                 if not messages:
                     logger.info("No messages received in %d seconds", self.wait_time)

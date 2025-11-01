@@ -2,15 +2,30 @@
 
 import asyncio
 import logging
+import signal
 
 from payment_api.infrastructure import factory
 
 logger = logging.getLogger(__name__)
 
 
+class GracefulShutdown:
+    """Handles graceful shutdown on SIGTERM and SIGINT signals"""
+
+    def __init__(self):
+        self.shutdown = False
+        signal.signal(signal.SIGTERM, self._exit_gracefully)
+        signal.signal(signal.SIGINT, self._exit_gracefully)
+
+    def _exit_gracefully(self, signum, frame):
+        logger.info("Received shutdown signal %d", signum)
+        self.shutdown = True
+
+
 async def main():
     """Run the order created event listener"""
 
+    shutdown_handler = GracefulShutdown()
     try:
         logger.info("Loading database settings")
         db_settings = factory.get_database_settings()
@@ -43,7 +58,7 @@ async def main():
         )
 
         logger.info("Starting order created event listener")
-        await listener.listen()
+        await listener.listen(shutdown_event=shutdown_handler)
     finally:
         logger.info("Closing session manager")
         await session_manager.close()
