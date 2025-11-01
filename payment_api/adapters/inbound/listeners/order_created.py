@@ -91,7 +91,7 @@ class OrderCreatedListener:
 
                 messages = await self._consume(queue=queue)
                 if not messages:
-                    logger.info("No messages received in %d seconds", self.wait_time)
+                    logger.debug("No messages received in %d seconds", self.wait_time)
                     continue
 
     async def _consume(self, queue):
