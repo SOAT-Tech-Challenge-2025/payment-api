@@ -18,7 +18,9 @@ class MPPaymentGateway(PaymentGateway):
     """Mercado Pago Payment Gateway adapter implementation."""
 
     def __init__(self, settings: MercadoPagoSettings, mp_client: MercadoPagoAPIClient):
-        self.callback_url = settings.CALLBACK_URL
+        self.callback_url = (
+            f"{settings.CALLBACK_URL}?x-mp-webhook-key={settings.WEBHOOK_KEY}"
+        )
         self.mp_client = mp_client
 
     async def create(self, payment: PaymentIn, products: list[Product]) -> PaymentIn:

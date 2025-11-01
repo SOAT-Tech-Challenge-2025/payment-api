@@ -2,10 +2,13 @@
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import ValidationError
 
+from payment_api.adapters.inbound.rest.dependencies.auth import (
+    validate_mercado_pago_notification,
+)
 from payment_api.adapters.inbound.rest.dependencies.core import (
     FinalizePaymentByMercadoPagoPaymentIdUseCaseDep,
     FindPaymentByIdUseCaseDep,
@@ -97,7 +100,11 @@ async def render_qr_code(
     return Response(content=qr_code, media_type="image/png")
 
 
-@router.post("/notifications/mercado-pago", response_model=PaymentV1)
+@router.post(
+    "/notifications/mercado-pago",
+    response_model=PaymentV1,
+    dependencies=[Depends(validate_mercado_pago_notification)],
+)
 async def mercado_pago_webhook(
     request: Request,
     use_case: FinalizePaymentByMercadoPagoPaymentIdUseCaseDep,

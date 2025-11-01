@@ -48,6 +48,7 @@ class MercadoPagoSettings(BaseSettings):
     USER_ID: str
     POS: str
     CALLBACK_URL: str
+    WEBHOOK_KEY: str
 
 
 class AWSSettings(BaseSettings):
