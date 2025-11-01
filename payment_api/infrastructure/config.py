@@ -74,3 +74,15 @@ class OrderCreatedListenerSettings(BaseSettings):
     WAIT_TIME_SECONDS: int = 5
     MAX_NUMBER_OF_MESSAGES_PER_BATCH: int = 5
     VISIBILITY_TIMEOUT_SECONDS: int = 60
+
+
+class PaymentClosedPublisherSettings(BaseSettings):
+    """Payment Closed Publisher settings"""
+
+    model_config = SettingsConfigDict(
+        env_file="settings/payment_closed_publisher.env",
+        env_file_encoding="utf-8",
+    )
+
+    TOPIC_ARN: str
+    GROUP_ID: str

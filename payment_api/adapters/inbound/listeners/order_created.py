@@ -114,11 +114,15 @@ class OrderCreatedListener:
             message_id = await msg.message_id
             try:
                 await self.handler.handle(message=msg)
-            except Exception:
+            except Exception:  # pylint: disable=W0718
                 logger.error(
                     "Failed to process message ID: %s",
                     message_id,
                     exc_info=True,
                 )
+
+                await msg.delete()
+                logger.warning("Deleted message ID: %s to avoid retries", message_id)
+                # TODO: Implement a dead-letter queue to handle failed messages
 
         return messages

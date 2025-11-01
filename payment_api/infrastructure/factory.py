@@ -14,7 +14,11 @@ from payment_api.adapters.inbound.listeners import (
     OrderCreatedListener,
 )
 from payment_api.adapters.inbound.rest.v1 import payment_router_v1
-from payment_api.adapters.out import MPPaymentGateway, SAPaymentRepository
+from payment_api.adapters.out import (
+    BotoPaymentClosedPublisher,
+    MPPaymentGateway,
+    SAPaymentRepository,
+)
 from payment_api.application.use_cases import (
     CreatePaymentFromOrderUseCase,
     FinalizePaymentByMercadoPagoPaymentIdUseCase,
@@ -25,7 +29,11 @@ from payment_api.application.use_cases.ports import (
     AbstractMercadoPagoClient,
     AbstractQRCodeRenderer,
 )
-from payment_api.domain.ports import PaymentGateway, PaymentRepository
+from payment_api.domain.ports import (
+    PaymentClosedPublisher,
+    PaymentGateway,
+    PaymentRepository,
+)
 from payment_api.infrastructure.config import (
     APPSettings,
     AWSSettings,
@@ -33,6 +41,7 @@ from payment_api.infrastructure.config import (
     HTTPClientSettings,
     MercadoPagoSettings,
     OrderCreatedListenerSettings,
+    PaymentClosedPublisherSettings,
 )
 from payment_api.infrastructure.mercado_pago import MercadoPagoAPIClient
 from payment_api.infrastructure.mercado_pago_client import MercadoPagoClient
@@ -70,6 +79,11 @@ def get_aws_settings() -> AWSSettings:
 def get_order_created_listener_settings() -> OrderCreatedListenerSettings:
     """Return an OrderCreatedListenerSettings instance"""
     return OrderCreatedListenerSettings()
+
+
+def get_payment_closed_publisher_settings() -> PaymentClosedPublisherSettings:
+    """Return a PaymentClosedPublisherSettings instance"""
+    return PaymentClosedPublisherSettings()
 
 
 def get_session_manager(settings: DatabaseSettings) -> SessionManager:
@@ -121,6 +135,16 @@ def get_payment_gateway(
     return MPPaymentGateway(settings=settings, mp_client=mp_client)
 
 
+def get_payment_closed_publisher(
+    settings: PaymentClosedPublisherSettings,
+    aio_boto3_session: AIOBoto3Session,
+) -> PaymentClosedPublisher:
+    """Return a PaymentClosedPublisher instance"""
+    return BotoPaymentClosedPublisher(
+        aio_boto3_session=aio_boto3_session, settings=settings
+    )
+
+
 def get_qr_code_renderer() -> AbstractQRCodeRenderer:
     """Return a QRCodeRenderer instance"""
     return QRCodeRenderer()
@@ -164,11 +188,13 @@ def get_render_qr_code_use_case(
 def get_finalize_payment_by_mercado_pago_payment_id_use_case(
     payment_repository: PaymentRepository,
     mercado_pago_client: AbstractMercadoPagoClient,
+    payment_closed_publisher: PaymentClosedPublisher,
 ) -> FinalizePaymentByMercadoPagoPaymentIdUseCase:
     """Return a FinalizePaymentByMercadoPagoPaymentIdUseCase instance"""
     return FinalizePaymentByMercadoPagoPaymentIdUseCase(
         payment_repository=payment_repository,
         mercado_pago_client=mercado_pago_client,
+        payment_closed_publisher=payment_closed_publisher,
     )
 
 
@@ -241,6 +267,13 @@ async def fastapi_lifespan(app_instance: FastAPI):
     app_instance.state.http_client_settings = get_http_client_settings()
     logger.info("Loading MercadoPago settings")
     app_instance.state.mercado_pago_settings = get_mercado_pago_settings()
+    logger.info("Loading AWS settings")
+    app_instance.state.aws_settings = get_aws_settings()
+    logger.info("Loading PaymentClosedPublisher settings")
+    app_instance.state.payment_closed_publisher_settings = (
+        get_payment_closed_publisher_settings()
+    )
+
     app_instance.title = app_instance.state.app_settings.TITLE
     app_instance.version = app_instance.state.app_settings.VERSION
     app_instance.root_path = app_instance.state.app_settings.ROOT_PATH

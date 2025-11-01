@@ -10,7 +10,8 @@ from payment_api.application.use_cases.ports import (
     MPOrderStatus,
 )
 from payment_api.domain.entities import PaymentIn, PaymentOut
-from payment_api.domain.ports import PaymentRepository
+from payment_api.domain.events import PaymentClosedEvent
+from payment_api.domain.ports import PaymentClosedPublisher, PaymentRepository
 from payment_api.domain.value_objects import PaymentStatus
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,11 @@ class FinalizePaymentByMercadoPagoPaymentIdUseCase:
         self,
         payment_repository: PaymentRepository,
         mercado_pago_client: AbstractMercadoPagoClient,
+        payment_closed_publisher: PaymentClosedPublisher,
     ):
         self.payment_repository = payment_repository
         self.mercado_pago_client = mercado_pago_client
+        self.payment_closed_publisher = payment_closed_publisher
 
     async def execute(
         self, command: FinalizePaymentByMercadoPagoPaymentIdCommand
@@ -41,6 +44,8 @@ class FinalizePaymentByMercadoPagoPaymentIdUseCase:
             the repository
         :raises ValueError: if the payment cannot be finalized due to its current status
         :raises MPClientError: if there is an error communicating with Mercado Pago
+        :raises EventPublishingError: if there is an error publishing the payment
+            closed event
         """
 
         logger.info(
@@ -78,9 +83,19 @@ class FinalizePaymentByMercadoPagoPaymentIdUseCase:
             payment.payment_status.value,
         )
 
-        return await self.payment_repository.save(
+        payment = await self.payment_repository.save(
             payment=PaymentIn.model_validate(payment)
         )
+
+        # publish payment closed event if payment is closed
+        if payment.payment_status == PaymentStatus.CLOSED:
+            await self.payment_closed_publisher.publish(
+                PaymentClosedEvent(payment_id=payment.id)
+            )
+
+            logger.info("Published PaymentClosedEvent for payment %s", payment.id)
+
+        return payment
 
     def _convert_mp_order_status_to_domain_status(
         self, mp_order_status: MPOrderStatus

@@ -18,7 +18,11 @@ from payment_api.application.commands import (
     RenderQRCodeCommand,
 )
 from payment_api.application.use_cases.ports import MPClientError
-from payment_api.domain.exceptions import NotFound, PersistenceError
+from payment_api.domain.exceptions import (
+    EventPublishingError,
+    NotFound,
+    PersistenceError,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/payment", tags=["payment"])
@@ -137,7 +141,7 @@ async def mercado_pago_webhook(
     except PersistenceError as error:
         logger.error(
             "Persistence error occurred while processing MercadoPago webhook for "
-            "payment ID %s",
+            "MP payment ID %s",
             webhook.data.id,
             exc_info=True,
         )
@@ -149,7 +153,7 @@ async def mercado_pago_webhook(
     except MPClientError as error:
         logger.error(
             "MercadoPago client error occurred while processing webhook for"
-            "payment ID %s",
+            "MP payment ID %s",
             webhook.data.id,
             exc_info=True,
         )
@@ -158,10 +162,28 @@ async def mercado_pago_webhook(
             status_code=502, detail="Error communicating with MercadoPago"
         ) from error
 
+    except EventPublishingError:
+        logger.error(
+            "Event publishing error occurred while processing MercadoPago webhook for "
+            "MP payment ID %s. Payment finalized but event not published, so we "
+            "respond 204 to avoid retries",
+            webhook.data.id,
+            exc_info=True,
+        )
+
+        logger.warning(
+            "Webhook with MP payment ID %s finalized but PaymentClosedEvent "
+            "not published",
+            webhook.data.id,
+        )
+        # TODO: Implement some mechanism to retry publishing the event later
+
+        return Response(status_code=204)
+
     except ValueError as error:
         logger.error(
             "Value error occurred while processing MercadoPago webhook for"
-            "payment ID %s",
+            "MP payment ID %s",
             webhook.data.id,
             exc_info=True,
         )
