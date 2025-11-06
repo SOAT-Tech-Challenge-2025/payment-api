@@ -44,6 +44,7 @@ class MercadoPagoSettings(BaseSettings):
         env_file="settings/mercado_pago.env", env_file_encoding="utf-8"
     )
 
+    URL: str = "https://api.mercadopago.com"
     ACCESS_TOKEN: str
     USER_ID: str
     POS: str

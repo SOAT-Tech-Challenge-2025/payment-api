@@ -6,11 +6,11 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from payment_api.infrastructure import factory
+from payment_api.infrastructure.config import DatabaseSettings
 from payment_api.infrastructure.orm.models import BaseModel
 
 # Get database settings
-settings = factory.get_database_settings()
+settings = DatabaseSettings()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
