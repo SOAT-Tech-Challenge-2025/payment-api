@@ -1,0 +1,36 @@
+services:
+  test_db:
+    image: postgres:17.6-alpine
+    container_name: payment-api-test-database
+    restart: always
+    env_file:
+      - ./docker-compose-env/test_database.env
+    volumes:
+      - db-dev-data:/var/lib/postgresql/data
+    networks:
+      - soat-payment
+
+  api:
+    container_name: payment-api
+    image: payment-api:dev
+    restart: none
+    build:
+      context: .
+      target: development
+    entrypoint: ["pytest"]
+    volumes:
+      - ./settings:/app/settings
+    depends_on:
+      - test_db
+    env_file:
+      - ./docker-compose-env/app.env
+    networks:
+      - soat-payment
+
+volumes:
+  db-data:
+  db-dev-data:
+
+networks:
+  soat-payment:
+    driver: bridge

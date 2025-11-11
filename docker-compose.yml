@@ -31,15 +31,13 @@ services:
 
   api:
     container_name: payment-api
-    image: payment-api:${PAYMENT_API_VERSION:-dev}
+    image: payment-api:dev
     restart: always
     expose:
       - 8000
     build:
       context: .
-      args:
-        VERSION: ${PAYMENT_API_VERSION:-dev}
-        USER_UID: ${PAYMENT_API_USER_UID:-1000}
+      target: development
     ports:
       - ${PAYMENT_API_HTTP_PORT:-8000}:8000
     entrypoint: ["sh", "/app/docker-entrypoint/start_dev_api.sh"]
@@ -59,7 +57,7 @@ services:
       - soat-payment
   order-created-listener:
     container_name: order-created-listener
-    image: payment-api:${PAYMENT_API_VERSION:-dev}
+    image: payment-api:dev
     restart: always
     entrypoint: ["sh", "/app/docker-entrypoint/start_order_created_listener.sh"]
     volumes:

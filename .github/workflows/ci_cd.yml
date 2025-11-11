@@ -1,0 +1,45 @@
+name: CI / CD Pipeline
+on:
+  - push
+  - workflow_dispatch
+
+jobs:
+  test:
+    name: Test Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+        with:
+          version: latest
+
+      - name: Build application for testing
+        run: docker compose -f docker-compose.test.yml build --no-cache api
+
+      - name: Pull test database image
+        run: docker compose -f docker-compose.test.yml pull test_db
+
+      - name: Create DB env file
+        run: |
+          cat << EOF > docker-compose-env/test_database.env
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=12345
+          POSTGRES_DB=postgres
+          EOF
+
+      - name: Create API env file
+        run: touch docker-compose-env/app.env
+
+      - name: Create the testing database configuration file for the application
+        run: |
+          cat << EOF > settings/test_database.env
+          DSN="postgresql+asyncpg://postgres:12345@test_db:5432/postgres"
+          ECHO=True
+          EOF
+
+      - name: Run tests
+        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit api
