@@ -44,11 +44,28 @@ jobs:
       - name: Run tests
         run: docker compose -f docker-compose.test.yml up --abort-on-container-exit api
 
-  build_and_push:
-    name: Build and Push Docker Image
+  sonarqube:
+    name: SonarQube
     needs: test
     runs-on: ubuntu-latest
-    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@40f5b61913e891f9d316696628698051136015be
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: SonarQube Quality Gate check
+        uses: SonarSource/sonarqube-quality-gate-action@95b1cc6c02a15c8ecc00c07b1c2a75ed61a14055
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  build_and_push:
+    name: Build and Push Docker Image
+    needs: sonarqube
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/development' && github.repository == 'SOAT-Tech-Challenge-2025/payment-api'
 
     steps:
