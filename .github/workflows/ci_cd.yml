@@ -43,3 +43,34 @@ jobs:
 
       - name: Run tests
         run: docker compose -f docker-compose.test.yml up --abort-on-container-exit api
+
+  build_and_push:
+    name: Build and Push Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/development' && github.repository == 'SOAT-Tech-Challenge-2025/payment-api'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Login to ECR
+        uses: docker/login-action@v3
+        with:
+          registry: public.ecr.aws
+          username: ${{ secrets.AWS_ACCESS_KEY }}
+          password: ${{ secrets.AWS_ACCESS_SECRET }}
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: public.ecr.aws/p6c0d2v5/fiap-soat-techchallenge-payment:latest
+          target: production
