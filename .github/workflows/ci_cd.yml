@@ -63,6 +63,8 @@ jobs:
     name: SonarQube
     needs: test
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.repository == 'SOAT-Tech-Challenge-2025/payment-api'
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -87,7 +89,6 @@ jobs:
     name: Build and Push Docker Image
     needs: sonarqube
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/development' && github.repository == 'SOAT-Tech-Challenge-2025/payment-api'
 
     steps:
       - name: Checkout repository
