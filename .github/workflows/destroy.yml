@@ -49,8 +49,8 @@ jobs:
             -var docker_api_image="${{ env.APP_IMAGE }}" \
             -var force_rollout="$(date +%s)" \
             -var aws_account_id="${{ secrets.AWS_ACCOUNT_ID }}" \
-            -var aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var aws_access_key_id="${{ secrets.AWS_ACCESS_KEY }}" \
+            -var aws_secret_access_key="${{ secrets.AWS_ACCESS_SECRET }}" \
             -var database_address="${{ secrets.DATABASE_ADDRESS }}" \
             -var database_name="${{ secrets.DATABASE_NAME }}" \
             -var database_port="${{ secrets.DATABASE_PORT }}" \
