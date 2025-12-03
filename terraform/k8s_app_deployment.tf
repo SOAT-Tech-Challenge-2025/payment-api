@@ -58,12 +58,12 @@ resource "kubernetes_deployment" "payment_api" {
 
           resources {
             limits = {
-              cpu    = "300m"
-              memory = "256Mi"
+              cpu    = "500m"
+              memory = "1Gi"
             }
             requests = {
-              cpu    = "100m"
-              memory = "128Mi"
+              cpu    = "250m"
+              memory = "512Mi"
             }
           }
 
