@@ -22,7 +22,7 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "order_created_listener" {
 
         target {
           type                = "Utilization"
-          average_utilization = 80
+          average_utilization = 90
         }
       }
     }
@@ -35,7 +35,7 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "order_created_listener" {
 
         target {
           type                = "Utilization"
-          average_utilization = 80
+          average_utilization = 90
         }
       }
     }

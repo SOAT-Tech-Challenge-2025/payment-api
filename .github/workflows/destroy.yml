@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 env:
-  APP_IMAGE: "public.ecr.aws/p6c0d2v5/fiap-soat-techchallenge:latest"
+  APP_IMAGE: "public.ecr.aws/p6c0d2v5/fiap-soat-techchallenge-payment:latest"
 
 jobs:
   terraform-destroy:

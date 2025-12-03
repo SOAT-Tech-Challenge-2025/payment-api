@@ -35,12 +35,12 @@ resource "kubernetes_deployment" "order_created_listener" {
 
           resources {
             limits = {
-              cpu    = "1"
-              memory = "1Gi"
+              cpu    = "300m"
+              memory = "256Mi"
             }
             requests = {
-              cpu    = "500m"
-              memory = "512Mi"
+              cpu    = "100m"
+              memory = "128Mi"
             }
           }
 
