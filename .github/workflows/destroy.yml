@@ -1,0 +1,65 @@
+name: Destroy Infrastructure
+on:
+  workflow_dispatch:
+
+env:
+  APP_IMAGE: "public.ecr.aws/p6c0d2v5/fiap-soat-techchallenge:latest"
+
+jobs:
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.13"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.0.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
+
+      - name: Create backend.hcl configuration file
+        run: |
+          cat << EOF > backend.hcl
+          bucket         = "${{ vars.TF_BACKEND_BUCKET }}"
+          key            = "${{ vars.TF_BACKEND_KEY }}"
+          region         = "${{ vars.AWS_REGION }}"
+          dynamodb_table = "${{ vars.TF_BACKEND_DYNAMO_TABLE }}"
+          encrypt        = true
+          EOF
+
+      - name: Terraform Init
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy -auto-approve \
+            -var region="${{ vars.AWS_REGION }}" \
+            -var docker_api_image="${{ env.APP_IMAGE }}" \
+            -var force_rollout="$(date +%s)" \
+            -var aws_account_id="${{ secrets.AWS_ACCOUNT_ID }}" \
+            -var aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var database_address="${{ secrets.DATABASE_ADDRESS }}" \
+            -var database_name="${{ secrets.DATABASE_NAME }}" \
+            -var database_port="${{ secrets.DATABASE_PORT }}" \
+            -var database_user="${{ secrets.DATABASE_USER }}" \
+            -var database_password="${{ secrets.DATABASE_PASSWORD }}" \
+            -var mercado_pago_access_token="${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }}" \
+            -var mercado_pago_user_id="${{ secrets.MERCADO_PAGO_USER_ID }}" \
+            -var mercado_pago_pos="${{ secrets.MERCADO_PAGO_POS }}" \
+            -var mercado_pago_webhook_key="${{ secrets.MERCADO_PAGO_WEBHOOK_KEY }}" \
+            -var order_created_listener_queue_name="${{ secrets.ORDER_CREATED_LISTENER_QUEUE_NAME }}" \
+            -var payment_closed_publisher_topic_arn="${{ secrets.PAYMENT_CLOSED_PUBLISHER_TOPIC_ARN }}" \
+            -var payment_closed_publisher_group_id="${{ secrets.PAYMENT_CLOSED_PUBLISHER_GROUP_ID }}"
