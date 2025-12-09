@@ -43,7 +43,7 @@ class MPClientError(Exception):
     """Custom exception for Mercado Pago client errors."""
 
 
-class AbstractMercadoPagoClient(ABC):
+class MercadoPagoClient(ABC):
     """Abstract client interface for interacting with Mercado Pago API in the
     application layer."""
 

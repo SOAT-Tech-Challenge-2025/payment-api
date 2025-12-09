@@ -12,11 +12,12 @@ from payment_api.application.use_cases import (
     FindPaymentByIdUseCase,
     RenderQRCodeUseCase,
 )
-from payment_api.application.use_cases.ports import (
-    AbstractMercadoPagoClient,
-    AbstractQRCodeRenderer,
+from payment_api.domain.ports import MercadoPagoClient as AbstractMercadoPagoClient
+from payment_api.domain.ports import (
+    PaymentClosedPublisher,
+    PaymentRepository,
 )
-from payment_api.domain.ports import PaymentClosedPublisher, PaymentRepository
+from payment_api.domain.ports import QRCodeRenderer as AbstractQRCodeRenderer
 from payment_api.infrastructure import factory
 from payment_api.infrastructure.mercado_pago import MercadoPagoAPIClient
 

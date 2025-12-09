@@ -12,13 +12,13 @@ from payment_api.application.commands import (
 from payment_api.application.use_cases import (
     FinalizePaymentByMercadoPagoPaymentIdUseCase,
 )
-from payment_api.application.use_cases.ports import (
+from payment_api.domain.entities import PaymentIn, PaymentOut
+from payment_api.domain.ports import (
     MPOrder,
     MPOrderStatus,
     MPPayment,
     MPPaymentOrder,
 )
-from payment_api.domain.entities import PaymentIn, PaymentOut
 from payment_api.domain.value_objects import PaymentStatus
 
 

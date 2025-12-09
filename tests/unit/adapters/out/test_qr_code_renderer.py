@@ -6,7 +6,7 @@ import pytest
 from pytest_mock import MockerFixture
 from qrcode.image.pil import PilImage
 
-from payment_api.infrastructure.qr_code_renderer import QRCodeRenderer
+from payment_api.adapters.out import QRCodeRenderer
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def test_should_render_qr_code_when_valid_data_is_provided(
 
     # Mock the QRCode constructor and methods
     mock_qr_code_class = mocker.patch(
-        "payment_api.infrastructure.qr_code_renderer.QRCode"
+        "payment_api.adapters.out.qr_code_renderer.QRCode"
     )
 
     mock_qr_code_class.return_value = mock_qr_code
@@ -44,7 +44,7 @@ def test_should_render_qr_code_when_valid_data_is_provided(
 
     # Mock BytesIO
     mock_bytes_io_class = mocker.patch(
-        "payment_api.infrastructure.qr_code_renderer.BytesIO"
+        "payment_api.adapters.out.qr_code_renderer.BytesIO"
     )
 
     mock_bytes_io_class.return_value = mock_buffer

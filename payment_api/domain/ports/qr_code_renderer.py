@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractQRCodeRenderer(ABC):
+class QRCodeRenderer(ABC):
     """Interface for rendering QR codes."""
 
     @abstractmethod

@@ -14,7 +14,9 @@ from payment_api.adapters.inbound.listeners import (
 )
 from payment_api.adapters.out import (
     BotoPaymentClosedPublisher,
+    MercadoPagoClient,
     MPPaymentGateway,
+    QRCodeRenderer,
     SAPaymentRepository,
 )
 from payment_api.application.use_cases import (
@@ -23,15 +25,13 @@ from payment_api.application.use_cases import (
     FindPaymentByIdUseCase,
     RenderQRCodeUseCase,
 )
-from payment_api.application.use_cases.ports import (
-    AbstractMercadoPagoClient,
-    AbstractQRCodeRenderer,
-)
+from payment_api.domain.ports import MercadoPagoClient as AbstractMercadoPagoClient
 from payment_api.domain.ports import (
     PaymentClosedPublisher,
     PaymentGateway,
     PaymentRepository,
 )
+from payment_api.domain.ports import QRCodeRenderer as AbstractQRCodeRenderer
 from payment_api.infrastructure.config import (
     AWSSettings,
     DatabaseSettings,
@@ -41,9 +41,7 @@ from payment_api.infrastructure.config import (
     PaymentClosedPublisherSettings,
 )
 from payment_api.infrastructure.mercado_pago import MercadoPagoAPIClient
-from payment_api.infrastructure.mercado_pago_client import MercadoPagoClient
 from payment_api.infrastructure.orm import SessionManager
-from payment_api.infrastructure.qr_code_renderer import QRCodeRenderer
 
 logger = logging.getLogger(__name__)
 

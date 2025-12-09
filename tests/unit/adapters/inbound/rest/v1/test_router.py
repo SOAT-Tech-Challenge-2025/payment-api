@@ -10,13 +10,13 @@ from payment_api.application.commands import (
     FindPaymentByIdCommand,
     RenderQRCodeCommand,
 )
-from payment_api.application.use_cases.ports import MPClientError
 from payment_api.domain.entities import PaymentOut
 from payment_api.domain.exceptions import (
     EventPublishingError,
     NotFound,
     PersistenceError,
 )
+from payment_api.domain.ports import MPClientError
 from payment_api.domain.value_objects import PaymentStatus
 
 

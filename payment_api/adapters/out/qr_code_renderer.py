@@ -5,7 +5,7 @@ from io import BytesIO
 from qrcode import QRCode
 from qrcode.image.pil import PilImage
 
-from payment_api.application.use_cases.ports import AbstractQRCodeRenderer
+from payment_api.domain.ports import QRCodeRenderer as AbstractQRCodeRenderer
 
 
 class QRCodeRenderer(AbstractQRCodeRenderer):

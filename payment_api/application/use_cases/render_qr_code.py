@@ -3,8 +3,8 @@
 import logging
 
 from payment_api.application.commands import RenderQRCodeCommand
-from payment_api.application.use_cases.ports import AbstractQRCodeRenderer
 from payment_api.domain.ports import PaymentRepository
+from payment_api.domain.ports import QRCodeRenderer as AbstractQRCodeRenderer
 
 logger = logging.getLogger(__name__)
 

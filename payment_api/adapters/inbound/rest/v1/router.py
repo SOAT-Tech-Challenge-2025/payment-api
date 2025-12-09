@@ -20,12 +20,12 @@ from payment_api.application.commands import (
     FindPaymentByIdCommand,
     RenderQRCodeCommand,
 )
-from payment_api.application.use_cases.ports import MPClientError
 from payment_api.domain.exceptions import (
     EventPublishingError,
     NotFound,
     PersistenceError,
 )
+from payment_api.domain.ports import MPClientError
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/payment", tags=["payment"])

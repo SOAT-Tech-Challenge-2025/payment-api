@@ -1,10 +1,8 @@
 """Concrete implementation of AbstractMercadoPagoClient using MercadoPagoAPIClient"""
 
-from payment_api.application.use_cases.ports import (
-    AbstractMercadoPagoClient,
-)
-from payment_api.application.use_cases.ports import MPClientError as MPClientPortError
-from payment_api.application.use_cases.ports import (
+from payment_api.domain.ports import MercadoPagoClient as AbstractMercadoPagoClient
+from payment_api.domain.ports import MPClientError as MPClientPortError
+from payment_api.domain.ports import (
     MPOrder,
     MPPayment,
 )

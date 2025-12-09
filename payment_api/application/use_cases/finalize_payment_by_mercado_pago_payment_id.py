@@ -5,13 +5,14 @@ import logging
 from payment_api.application.commands import (
     FinalizePaymentByMercadoPagoPaymentIdCommand,
 )
-from payment_api.application.use_cases.ports import (
-    AbstractMercadoPagoClient,
-    MPOrderStatus,
-)
 from payment_api.domain.entities import PaymentIn, PaymentOut
 from payment_api.domain.events import PaymentClosedEvent
-from payment_api.domain.ports import PaymentClosedPublisher, PaymentRepository
+from payment_api.domain.ports import MercadoPagoClient as AbstractMercadoPagoClient
+from payment_api.domain.ports import (
+    MPOrderStatus,
+    PaymentClosedPublisher,
+    PaymentRepository,
+)
 from payment_api.domain.value_objects import PaymentStatus
 
 logger = logging.getLogger(__name__)

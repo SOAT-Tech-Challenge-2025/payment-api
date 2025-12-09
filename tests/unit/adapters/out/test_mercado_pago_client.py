@@ -5,7 +5,8 @@
 import pytest
 from pytest_mock import MockerFixture
 
-from payment_api.application.use_cases.ports import (
+from payment_api.adapters.out import MercadoPagoClient
+from payment_api.domain.ports import (
     MPClientError,
     MPOrder,
     MPOrderStatus,
@@ -23,7 +24,6 @@ from payment_api.infrastructure.mercado_pago.schemas import MPPayment as MPPayme
 from payment_api.infrastructure.mercado_pago.schemas import (
     MPPaymentOrder as MPPaymentOrderInfra,
 )
-from payment_api.infrastructure.mercado_pago_client import MercadoPagoClient
 
 
 @pytest.fixture
