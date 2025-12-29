@@ -49,19 +49,9 @@ variable "aws_secret_access_key" {
   sensitive   = true
 }
 
-variable "database_address" {
-  description = "The address of the Postgres instance"
-  sensitive   = true
-}
-
 variable "database_name" {
   description = "The database name in the Postgres instance"
   sensitive   = true
-}
-
-variable "database_port" {
-  description = "The port for the Postgres instance"
-  default     = 5432
 }
 
 variable "database_user" {
@@ -108,11 +98,6 @@ variable "mercado_pago_webhook_key" {
 
 variable "order_created_listener_queue_name" {
   description = "The name of the SQS queue to listen for order created events"
-}
-
-variable "payment_closed_publisher_topic_arn" {
-  description = "The ARN of the SNS topic to publish payment closed events"
-  sensitive   = true
 }
 
 variable "payment_closed_publisher_group_id" {

@@ -15,7 +15,7 @@ resource "kubernetes_secret" "payment_api" {
     MERCADO_PAGO_POS                   = var.mercado_pago_pos
     MERCADO_PAGO_USER_ID               = var.mercado_pago_user_id
     MERCADO_PAGO_WEBHOOK_KEY           = var.mercado_pago_webhook_key
-    PAYMENT_CLOSED_PUBLISHER_TOPIC_ARN = var.payment_closed_publisher_topic_arn
+    PAYMENT_CLOSED_PUBLISHER_TOPIC_ARN = data.terraform_remote_state.database.outputs.payment_closed_topic_arn
     PAYMENT_CLOSED_PUBLISHER_GROUP_ID  = var.payment_closed_publisher_group_id
   }
 }

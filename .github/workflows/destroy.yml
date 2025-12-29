@@ -51,9 +51,7 @@ jobs:
             -var aws_account_id="${{ secrets.AWS_ACCOUNT_ID }}" \
             -var aws_access_key_id="${{ secrets.AWS_ACCESS_KEY }}" \
             -var aws_secret_access_key="${{ secrets.AWS_ACCESS_SECRET }}" \
-            -var database_address="${{ secrets.DATABASE_ADDRESS }}" \
             -var database_name="${{ secrets.DATABASE_NAME }}" \
-            -var database_port="${{ secrets.DATABASE_PORT }}" \
             -var database_user="${{ secrets.DATABASE_USER }}" \
             -var database_password="${{ secrets.DATABASE_PASSWORD }}" \
             -var mercado_pago_access_token="${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }}" \
@@ -61,5 +59,4 @@ jobs:
             -var mercado_pago_pos="${{ secrets.MERCADO_PAGO_POS }}" \
             -var mercado_pago_webhook_key="${{ secrets.MERCADO_PAGO_WEBHOOK_KEY }}" \
             -var order_created_listener_queue_name="${{ secrets.ORDER_CREATED_LISTENER_QUEUE_NAME }}" \
-            -var payment_closed_publisher_topic_arn="${{ secrets.PAYMENT_CLOSED_PUBLISHER_TOPIC_ARN }}" \
             -var payment_closed_publisher_group_id="${{ secrets.PAYMENT_CLOSED_PUBLISHER_GROUP_ID }}"
